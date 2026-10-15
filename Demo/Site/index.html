@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>稜鏡 PRISM — 新聞觀點工作台（客戶展示版）</title>
+
+<link href="css/app.css" rel="stylesheet"/></head>
+<body>
+<!-- Client Presentation Bar -->
+<div class="client-banner">
+<div>
+<strong>稜鏡 PRISM</strong> · 媒體新聞觀點分析工作台
+      <span class="badge">客戶展示版 (Client Interactive Demo)</span>
+</div>
+<div class="client-banner-actions">
+<span>開箱即用 · 零外部依賴</span>
+<button class="client-banner-btn" onclick="toggleDataset('demo')">體驗示範案例</button>
+<button class="client-banner-btn" onclick="toggleDataset('real')">切換真實新聞</button>
+</div>
+</div>
+<div class="workspace">
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+<div class="brand">
+<div class="brand-symbol">
+<svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="22"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"></path><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"></path></svg>
+</div>
+<span>稜鏡<b>PRISM</b></span>
+</div>
+<div class="sidebar-label">
+<span>觀點與對立度探索</span>
+</div>
+<!-- Dataset Switcher -->
+<div aria-label="資料集切換" class="dataset-toggle" role="group">
+<button id="btn-real" onclick="toggleDataset('real')">真實新聞</button>
+<button class="active" id="btn-demo" onclick="toggleDataset('demo')">示範案例</button>
+</div>
+<!-- Search Box -->
+<div class="search">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+<input id="event-search" oninput="handleSearch(this.value)" placeholder="搜尋追蹤事件..." type="text"/>
+</div>
+<div class="list-heading">
+<span>追蹤事件</span>
+<span id="event-count-badge">01</span>
+</div>
+<nav class="event-list" id="event-list-container"></nav>
+<div class="sidebar-foot">
+<span class="live-dot"></span>
+<span id="sidebar-footer-text">虛構教學資料 · 3 個示範來源</span>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="main-shell">
+<!-- Top Bar -->
+<header class="topbar">
+<div class="breadcrumb">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path></svg>
+<span>事件探索</span>
+<span>/</span>
+<strong id="breadcrumb-dataset-name">示範案例展示</strong>
+</div>
+<button class="method-button" onclick="toggleMethodPanel()">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
+          觀點判定方法與規則
+        </button>
+</header>
+<main>
+<!-- Method Panel Drawer -->
+<div class="method-panel" id="method-panel" style="display: none;">
+<h2>先確認同一個核心問題，再比較主張</h2>
+<p>稜鏡不採用媒體政黨色彩直接貼標籤，而是為每個事件設定客觀核心問題。判定主張方向在 −2（明確反對）至 +2（明確支持）之間。</p>
+<p><strong>相反主張判定條件：</strong>僅有兩篇文章在「主張方向」維度分數相反、分差至少達 2 分，且雙方評估信心皆達 60% 時，才判定為「相反主張」。表達方式（語氣激進或溫和）或焦點（人物攻防或制度政策）不同，不冒充立場對立。</p>
+</div>
+<div id="notice-container"></div>
+<!-- Event Heading Banner -->
+<div class="event-heading">
+<div>
+<div class="eyebrow">
+<span class="mini-line"></span>
+<span id="event-type-label">DEMO / 虛構教學事件</span>
+<span class="subtle-tag" id="event-badge-label">示範案例</span>
+</div>
+<h1 id="event-title">載入中...</h1>
+<div class="heading-meta">
+<span id="event-article-count">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10"></path><path d="M6 10h10"></path></svg>
+                3 篇報導
+              </span>
+<span id="event-date-range">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                2026/09/01 — 2026/09/03
+              </span>
+<span id="event-reviewed-count">3 篇已標註</span>
+</div>
+</div>
+<div class="event-number">
+<span id="event-num-id">01</span>
+<span>EVENT</span>
+</div>
+</div>
+<div class="demo-banner" id="banner-note">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="16" y2="12"></line><line x1="12" x2="12.01" y1="8" y2="8"></line></svg>
+<span id="banner-note-text">此事件與文章皆為虛構，僅示範比較功能；展示完整的相反主張識別流程。</span>
+</div>
+<!-- View Tabs -->
+<div class="view-tabs">
+<button class="active" id="tab-compare-btn" onclick="switchTab('compare')">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><path d="M11 18H8a2 2 0 0 1-2-2V9"></path></svg>
+            觀點比較
+          </button>
+<button id="tab-timeline-btn" onclick="switchTab('timeline')">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            報導時間軸
+            <span class="count-badge" id="timeline-count-badge">3</span>
+</button>
+</div>
+<!-- Main Content Area Grid -->
+<div class="content-grid" id="main-content-grid">
+<!-- Left: Comparison Workspace -->
+<div class="comparison-workspace" id="comparison-view">
+<!-- Article Pair -->
+<div class="article-pair">
+<!-- Article A -->
+<article class="article-card article-a">
+<div class="card-top">
+<span class="letter">A</span>
+<span id="card-a-source">示範文章 A</span>
+<span class="status-tag reviewed" id="card-a-status">已標註</span>
+</div>
+<select class="article-select" id="select-article-a" onchange="changeArticle('left', this.value)"></select>
+<h3 id="card-a-title">交通研究者支持通行費：收入應投入公共運輸</h3>
+<p class="article-byline" id="card-a-byline">2026/09/01 09:00 · 交通研究者（虛構）</p>
+<div class="card-footer">
+<a href="#" id="card-a-link" target="_blank">閱讀原文 ↗</a>
+<button onclick="openEditModal('left')">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><line x1="4" x2="4" y1="21" y2="14"></line><line x1="4" x2="4" y1="10" y2="3"></line><line x1="12" x2="12" y1="21" y2="12"></line><line x1="12" x2="12" y1="8" y2="3"></line><line x1="20" x2="20" y1="21" y2="16"></line><line x1="20" x2="20" y1="12" y2="3"></line><line x1="1" x2="7" y1="14" y2="14"></line><line x1="9" x2="15" y1="8" y2="8"></line><line x1="17" x2="23" y1="16" y2="16"></line></svg>
+                    標註覆核
+                  </button>
+</div>
+</article>
+<!-- Article B -->
+<article class="article-card article-b">
+<div class="card-top">
+<span class="letter">B</span>
+<span id="card-b-source">示範文章 B</span>
+<span class="status-tag reviewed" id="card-b-status">已標註</span>
+</div>
+<select class="article-select" id="select-article-b" onchange="changeArticle('right', this.value)"></select>
+<h3 id="card-b-title">商圈代表反對通行費：替代運輸尚未到位</h3>
+<p class="article-byline" id="card-b-byline">2026/09/02 11:30 · 商圈代表（虛構）</p>
+<div class="card-footer">
+<a href="#" id="card-b-link" target="_blank">閱讀原文 ↗</a>
+<button onclick="openEditModal('right')">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><line x1="4" x2="4" y1="21" y2="14"></line><line x1="4" x2="4" y1="10" y2="3"></line><line x1="12" x2="12" y1="21" y2="12"></line><line x1="12" x2="12" y1="8" y2="3"></line><line x1="20" x2="20" y1="21" y2="16"></line><line x1="20" x2="20" y1="12" y2="3"></line><line x1="1" x2="7" y1="14" y2="14"></line><line x1="9" x2="15" y1="8" y2="8"></line><line x1="17" x2="23" y1="16" y2="16"></line></svg>
+                    標註覆核
+                  </button>
+</div>
+</article>
+</div>
+<!-- Perspective Map -->
+<section class="dimension-panel">
+<div class="dimension-heading">
+<div>
+<div class="eyebrow">PERSPECTIVE MAP</div>
+<h2>觀點在哪裡分岔？</h2>
+</div>
+<div class="legend">
+<div class="legend-item"><span class="legend-dot a"></span> 文章 A</div>
+<div class="legend-item"><span class="legend-dot b"></span> 文章 B</div>
+</div>
+</div>
+<!-- Status Notification -->
+<div class="comparison-status opposed" id="comparison-status-box">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg>
+<strong id="comparison-status-title">辨識到相反主張</strong>
+<span id="comparison-status-detail">主張方向（分差 4，信心達標）</span>
+</div>
+<!-- 3 Dimensions -->
+<div id="dimensions-container"></div>
+</section>
+</div>
+<!-- Right: Timeline Panel -->
+<aside class="timeline-panel" id="timeline-container">
+<div class="timeline-panel-heading">
+<h2>報導時間軸</h2>
+<span class="subtle-tag">由早到晚</span>
+</div>
+<p class="timeline-caption">依發布時間排序 · 台北時間<br/>報導時間不等同事件發生時間</p>
+<ol class="timeline-list" id="timeline-items"></ol>
+</aside>
+</div>
+<footer class="page-footer">
+<span>PRISM / 看見差異，保留脈絡。</span>
+<span>客戶展示版 · 可回溯來源 · 人工覆核標準</span>
+</footer>
+</main>
+</div>
+</div>
+<!-- Interactive Edit / Annotation Modal -->
+<div class="modal-overlay" id="edit-modal">
+<div class="modal-card">
+<div class="modal-header">
+<div>
+<span class="eyebrow" style="color: var(--blue);">REVIEW / 人工覆核</span>
+<h2>為主張留下依據</h2>
+</div>
+<button class="close-btn" onclick="closeEditModal()">×</button>
+</div>
+<p class="modal-article-title" id="modal-article-title">文章標題</p>
+<form id="edit-form" onsubmit="handleSaveAnnotation(event)">
+<!-- Dimension Fields will be injected here -->
+<div id="modal-dimensions-inputs"></div>
+<div class="modal-actions">
+<button class="btn btn-secondary" onclick="closeEditModal()" type="button">取消</button>
+<button class="btn btn-primary" type="submit">儲存標註與更新地圖</button>
+</div>
+</form>
+</div>
+</div>
+
+<script src="js/app.js"></script></body>
+</html>

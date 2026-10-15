@@ -1,0 +1,6 @@
+feedparser
+requests
+pymysql
+beautifulsoup4
+fastapi
+uvicorn
