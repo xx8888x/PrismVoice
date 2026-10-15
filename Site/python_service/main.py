@@ -1,4 +1,4 @@
-﻿import feedparser
+import feedparser
 import pymysql
 import hashlib
 import json
@@ -31,11 +31,11 @@ DB_CONFIG = {
     'cursorclass': pymysql.cursors.DictCursor
 }
 
-# 1. ?游?憭?啗?靘?
+# 1. 擴充多方新聞來源
 RSS_FEEDS = [
-    {'name': '?臬??啗?蝬?(UDN)', 'url': 'https://udn.com/news/rssfeed/6638'},
-    {'name': 'Yahoo 憟?啗?', 'url': 'https://tw.news.yahoo.com/rss/'},
-    {'name': '?祈??啗?蝬?(PTS)', 'url': 'https://news.pts.org.tw/xml/newsfeed.xml'}
+    {'name': '聯合新聞網 (UDN)', 'url': 'https://udn.com/news/rssfeed/6638'},
+    {'name': 'Yahoo 奇摩新聞', 'url': 'https://tw.news.yahoo.com/rss/'},
+    {'name': '公視新聞網 (PTS)', 'url': 'https://news.pts.org.tw/xml/newsfeed.xml'}
 ]
 
 def fetch_full_text(url):
@@ -60,54 +60,55 @@ class MockAIClient:
         combined_text = title + "\n" + full_text
         score = 0
         confidence = 0.55
-        reason = "AI 隤甇斤??勗?蝡銝剔?嚗?＊?炊??
+        reason = "AI 認為此篇報導立場中立，無明顯偏誤。"
 
-        if any(w in combined_text for w in ["?舀?", "??", "?拙?", "甇?"]):
+        if any(w in combined_text for w in ["支持", "通過", "利多", "正面"]):
             score = random.choice([1, 2])
             confidence = random.uniform(0.7, 0.95)
-            reason = "AI ?斗嚗???急迤?Ｚ??舀??扯?敶?蝡??韐???
-        elif any(w in combined_text for w in ["??", "?降", "?拍征", "鞎", "銝遛"]):
+            reason = "AI 判斷：內文包含正面與支持性詞彙，立場偏向贊同。"
+        elif any(w in combined_text for w in ["反對", "抗議", "利空", "負面", "不滿"]):
             score = random.choice([-1, -2])
             confidence = random.uniform(0.7, 0.95)
-            reason = "AI ?斗嚗???曇??Ｘ?撘瑞??降??瘞??蝡??????
-        elif any(w in combined_text for w in ["?剛降", "鞈芰?", "?拇扔"]):
+            reason = "AI 判斷：內文呈現負面或強烈抗議的語氣，立場偏向反對。"
+        elif any(w in combined_text for w in ["爭議", "質疑", "兩極"]):
             score = -1
             confidence = 0.65
-            reason = "AI ?斗嚗?蝡??箔?隢詨?鞈芰?嚗??輻??望?靽??漲??
+            reason = "AI 判斷：文章提出了諸多質疑，對政策抱持保留態度。"
 
         return {
             "score": score,
             "confidence": round(confidence, 2),
             "evidence": full_text[:120] + "..." if full_text else title,
             "reason": reason,
-            "actor": "Mock AI (璅⊥璅∪?)",
+            "actor": "Mock AI (模擬模式)",
             "method": "auto"
         }
 
 ai_client = MockAIClient()
 
-# 4. ?啣虜?扔蝡臬?隤方郎??(Webhook)
+# 4. 異常與極端偏誤警報 (Webhook)
 def send_webhook_alert(title, source, score):
-    # Mock Webhook URL (靘? Slack, Discord, ??芸遣??Line Bot)
+    # Mock Webhook URL (例如 Slack, Discord, 或是自建的 Line Bot)
     webhook_url = "https://httpbin.org/post" 
     payload = {
-        "text": f"? [閫暺郎?崧 ?潛璆萇垢?炊?勗?嚗n靘?: {source}\n璅?: {title}\nAI ?文??: {score} (?航撣嗆?撘瑞??身蝡)"
+        "text": f"🚨 [觀點警報] 發現極端偏誤報導！\n來源: {source}\n標題: {title}\nAI 判定分數: {score} (可能帶有強烈預設立場)"
     }
     try:
         requests.post(webhook_url, json=payload, timeout=5)
-        print(f"--> [?冽?] 撌脩?扔蝡臬?隤方郎?? {title}")
+        print(f"--> [推播通知] 已發送極端偏誤警報: {title}")
     except Exception as e:
-        print(f"Webhook ?潮仃?? {e}")
+        print(f"Webhook 發送失敗: {e}")
 
-# 2. ?芸?鈭辣?黎瞍?瘜?(Clustering)
+# 2. 自動事件分群演算法 (Clustering)
 def assign_event_cluster(cursor, article_title):
-    # ???餈?50 蝑?隞嗡??脰?璅?瘥?
+    # 取得最近 50 筆事件來進行標題比對
     cursor.execute("SELECT id, title FROM news_events ORDER BY id DESC LIMIT 50")
     recent_events = cursor.fetchall()
     
-    # 蝪∪???祉隡澆漲閮? (閮??勗??箇????靘?撖血?銝?? TF-IDF ??Embedding)
+    # 簡單的文本相似度計算 (計算共同出現的字元比例，實務上可換成 TF-IDF 或 Embedding)
     best_match_id = None
-    best_score = 0.3 # ?訾撮摨阡?瑼?    
+    best_score = 0.3 # 相似度門檻
+    
     chars_a = set(article_title)
     for event in recent_events:
         chars_b = set(event['title'])
@@ -120,18 +121,19 @@ def assign_event_cluster(cursor, article_title):
     if best_match_id:
         return best_match_id
         
-    # 憒?瘝??寥???隞塚??芸??萄遣?唬?隞?    cluster_key = str(uuid.uuid4())
+    # 如果沒有匹配的事件，自動創建新事件
+    cluster_key = str(uuid.uuid4())
     dimensions = json.dumps([{
         "key": "dim_general",
-        "name": "?輻???隞嗆?漲",
-        "question": "閰脣撠??潭迨鈭辣??摨西??身蝡?箔?嚗?,
-        "left": "撘瑞???/鞈芰?",
-        "right": "?典??舀?/霅瑁"
+        "name": "政策與事件支持度",
+        "question": "該報導對於此事件的態度與預設立場為何？",
+        "left": "強烈反對/質疑",
+        "right": "全力支持/護航"
     }])
     cursor.execute("""
         INSERT INTO news_events (cluster_key, title, description, dimensions, is_demo, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, NOW(), NOW())
-    """, (cluster_key, article_title, 'AI ?芸??黎撱箇????隞?, dimensions, False))
+    """, (cluster_key, article_title, 'AI 自動分群建立的新聞事件', dimensions, False))
     return cursor.lastrowid
 
 def process_feeds():
@@ -141,7 +143,8 @@ def process_feeds():
             for feed_info in RSS_FEEDS:
                 print(f"Fetching RSS: {feed_info['name']}")
                 feed = feedparser.parse(feed_info['url'])
-                for entry in feed.entries[:10]: # ?箔? Demo嚗?甈⊥???10 蝭?                    url = entry.link
+                for entry in feed.entries[:10]: # 為了 Demo，每次抓取 10 篇
+                    url = entry.link
                     url_hash = hashlib.sha256(url.encode('utf-8')).hexdigest()
                     
                     cursor.execute("SELECT id FROM articles WHERE url_hash = %s", (url_hash,))
@@ -159,14 +162,14 @@ def process_feeds():
                     full_text = fetch_full_text(url)
                     analysis = ai_client.analyze(title, full_text)
                     
-                    # 閫貊璆萇垢?炊霅血 (??圈? +2 ??-2)
+                    # 觸發極端偏誤警報 (分數到達 +2 或 -2)
                     if abs(analysis['score']) == 2:
                         send_webhook_alert(title, feed_info['name'], analysis['score'])
                     
-                    # ???黎
+                    # 動態分群
                     event_id = assign_event_cluster(cursor, title)
                     
-                    # ??閰脖?隞嗥?蝬剖漲
+                    # 取得該事件的維度
                     cursor.execute("SELECT dimensions FROM news_events WHERE id = %s", (event_id,))
                     event_dims = json.loads(cursor.fetchone()['dimensions'])
                     

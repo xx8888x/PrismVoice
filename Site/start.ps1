@@ -12,7 +12,8 @@ function Test-ProjectProcess($pidPath, $expectedPath) {
 }
 $databaseExe = 'D:\xampp\mysql\bin\mysqld.exe'
 if (-not (Test-ProjectProcess $databasePidPath $databaseExe)) {
-    $process = Start-Process -FilePath $databaseExe -ArgumentList "--defaults-file=$databaseConfig", "--datadir=D:\稜鏡媒體網站\Site\.runtime\database", "--log-error=D:\稜鏡媒體網站\Site\.runtime\database\error.log" -WindowStyle Hidden -PassThru
+    # mysqld needs real std handles: without them its log output lands in multi-master.info and the next start aborts.
+    $process = Start-Process -FilePath $databaseExe -ArgumentList "--defaults-file=$databaseConfig", "--datadir=D:\稜鏡媒體網站\Site\.runtime\database", "--log-error=D:\稜鏡媒體網站\Site\.runtime\database\error.log" -WindowStyle Hidden -RedirectStandardOutput (Join-Path $projectRoot '.runtime\database-out.log') -RedirectStandardError (Join-Path $projectRoot '.runtime\database-stderr.log') -PassThru
     $process.Id | Set-Content -LiteralPath $databasePidPath
 }
 if (-not (Test-ProjectProcess $serverPidPath $phpPath)) {
