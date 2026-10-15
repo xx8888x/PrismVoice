@@ -59,6 +59,16 @@ class NewsTest extends TestCase
         $response = $this->getJson('/api/events/'.$article->news_event_id)->assertOk();
         $this->assertStringNotContainsString('全文僅供內部分析', $response->getContent());
     }
+    public function test_event_marks_reprints_with_their_original(): void {
+        [$reprint, $original] = $this->articles();
+        $reprint->update(['duplicate_of_article_id' => $original->id]);
+        $this->getJson('/api/events/'.$original->news_event_id)->assertOk()
+            ->assertJsonPath('articles.0.duplicate_of_article_id', null)
+            ->assertJsonPath('articles.1.duplicate_of_article_id', $original->id);
+        $this->assertTrue($reprint->duplicateOf->is($original));
+        $original->delete();
+        $this->assertNull($reprint->fresh()->duplicate_of_article_id);
+    }
     public function test_seeded_sources_are_usable_by_the_pipeline(): void {
         $sources = Source::all();
         $this->assertGreaterThanOrEqual(10, $sources->where('is_active', true)->count());
@@ -67,5 +77,8 @@ class NewsTest extends TestCase
             $this->assertStringStartsWith('https://', $source->feed_url);
         }
         $this->assertSame(['^/(\d+)', 'https://www.storm.mg/article/\1'], Source::where('slug', 'storm')->first()->link_rewrite);
+        $this->assertSame(480, Source::where('slug', 'yahoo')->first()->pubdate_offset_minutes);
+        $this->assertSame(0, Source::where('slug', 'cna')->first()->pubdate_offset_minutes);
+        $this->assertStringContainsString(':not(.read-more-vendor)', Source::where('slug', 'yahoo')->first()->content_selector);
     }
 }

@@ -2,3 +2,5 @@ feedparser
 requests
 pymysql
 beautifulsoup4
+# Pure-Python OpenCC: simplified → traditional before title clustering (DW writes simplified)
+opencc-python-reimplemented

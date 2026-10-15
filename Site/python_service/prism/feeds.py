@@ -1,7 +1,7 @@
 """Turn a source's RSS bytes into clean, validated article candidates."""
 import calendar
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
@@ -61,6 +61,8 @@ def parse_entries(content, source):
     feed = feedparser.parse(content)
     if not feed.entries and feed.get('bozo'):
         raise ValueError(f"RSS 無法解析：{feed.get('bozo_exception')}")
+    # Yahoo labels UTC clock times as +0800; sources.pubdate_offset_minutes corrects such feeds.
+    offset = timedelta(minutes=source.get('pubdate_offset_minutes') or 0)
     rows, seen = [], set()
     for entry in feed.entries:
         url = resolve_link(entry.get('link'), source)
@@ -69,10 +71,11 @@ def parse_entries(content, source):
             continue
         seen.add(url)
         tags = entry.get('tags') or []
+        published_at = parse_published(entry)
         rows.append({
             'url': url,
             'title': title,
-            'published_at': parse_published(entry),
+            'published_at': published_at + offset if published_at else None,
             'author': (entry.get('author') or '')[:255] or None,
             'category': ((tags[0].get('term') if tags else '') or '')[:255] or None,
         })

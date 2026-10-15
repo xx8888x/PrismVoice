@@ -14,4 +14,6 @@ class Article extends Model
     // Not named source(): the `source` column holds the display name the UI already reads.
     public function mediaSource(): BelongsTo { return $this->belongsTo(Source::class, 'source_id'); }
     public function content(): HasOne { return $this->hasOne(ArticleContent::class); }
+    // Set by the Python pipeline when this article reprints another's text; points at the earliest original.
+    public function duplicateOf(): BelongsTo { return $this->belongsTo(Article::class, 'duplicate_of_article_id'); }
 }

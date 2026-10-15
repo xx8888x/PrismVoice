@@ -12,6 +12,21 @@ def _paragraphs(container):
     return [t for t in (p.get_text(' ', strip=True) for p in container.find_all('p')) if t]
 
 
+def _selected_paragraphs(matches):
+    # A selector may name containers or the paragraphs themselves (so it can leave some out, e.g. Yahoo's
+    # trailing "more stories" line). Matches nested inside another match are skipped so nothing is counted twice.
+    chosen = {id(match) for match in matches}
+    texts = []
+    for match in matches:
+        if any(id(parent) in chosen for parent in match.parents):
+            continue
+        if match.name == 'p':
+            texts.append(match.get_text(' ', strip=True))
+        else:
+            texts.extend(_paragraphs(match))
+    return [t for t in texts if t]
+
+
 def _own_text_length(paragraph):
     # Link text is excluded: related-story lists are paragraphs full of links, real body copy is not.
     total = len(paragraph.get_text(strip=True))
@@ -20,14 +35,14 @@ def _own_text_length(paragraph):
 
 
 def extract_text(html, selector=None):
-    """Return (body, extractor). Uses the source's CSS selector, else the parent holding the most non-link paragraph text."""
+    """Return (body, extractor). Uses every element the source's CSS selector matches, else the parent holding the most non-link paragraph text."""
     soup = BeautifulSoup(html, 'html.parser')
     for tag in soup(NOISE_TAGS):
         tag.decompose()
     if selector:
-        container = soup.select_one(selector)
-        if container is not None:
-            return '\n'.join(_paragraphs(container)), f'selector:{selector}'
+        matches = soup.select(selector)
+        if matches:
+            return '\n'.join(_selected_paragraphs(matches)), f'selector:{selector}'
     totals = {}
     for paragraph in soup.find_all('p'):
         length = _own_text_length(paragraph)
