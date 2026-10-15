@@ -1,0 +1,21 @@
+{
+  "_comment": "觀點維度與標題規則的唯一定義。Laravel (PerspectiveService) 與 Python (prism/perspective.py) 都讀這個檔；改動後兩邊的 perspective_cases.json 測試都要過。",
+  "method": "headline-rules-v1",
+  "default_question": "對這則事件的核心措施持何種態度？",
+  "dimensions": [
+    {"key": "position", "name": "主張方向", "question": "{question}", "left": "反對／質疑", "right": "支持／肯定", "opposition": true},
+    {"key": "focus", "name": "討論焦點", "question": "文字主要聚焦人物攻防，還是制度與政策？", "left": "人物攻防", "right": "制度政策", "opposition": false},
+    {"key": "tone", "name": "表達方式", "question": "文字主要呈現衝突，還是協商與合作？", "left": "衝突對抗", "right": "協商合作", "opposition": false}
+  ],
+  "unscored": {"reason": "僅有標題，尚無足夠依據判定主張方向。"},
+  "headline_rules": {
+    "_comment": "只判 focus/tone，且只在單一方向有線索時給 ±1。position 永遠留空：標題語氣不等於作者立場，也不可由媒體、政黨名或引述推論。",
+    "confidence": 0.55,
+    "actor": "標題呈現",
+    "reason": "標題詞彙線索，待人工核對；不代表媒體或作者立場。",
+    "dimensions": {
+      "focus": {"positive": ["制度", "政策", "檢核表", "機組"], "negative": ["反諷", "回敬", "酸", "政績宣傳"]},
+      "tone": {"positive": ["合作", "協商", "共同"], "negative": ["轟", "反諷", "質疑", "斥", "政治仇恨"]}
+    }
+  }
+}

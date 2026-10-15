@@ -28,4 +28,18 @@ class PerspectiveTest extends TestCase
         $this->assertNull($result['position']['score']);
         $this->assertLessThan(.6, $result['tone']['confidence']);
     }
+    // python_service/tests/test_prism.py runs the same file: both languages must score identically.
+    public function test_shared_cases_match_the_python_pipeline(): void {
+        $cases = json_decode(file_get_contents(dirname(__DIR__, 3).'/shared/perspective_cases.json'), true, flags: JSON_THROW_ON_ERROR);
+        foreach ($cases as $case) {
+            $result = (new PerspectiveService)->assess($case['title']);
+            $this->assertSame($case['scores'], array_map(fn ($a) => $a['score'], $result), $case['title']);
+            $this->assertSame($case['evidence'], array_map(fn ($a) => $a['evidence'], array_filter($result, fn ($a) => $a['score'] !== null)), $case['title']);
+        }
+    }
+    public function test_dimension_without_opposition_flag_never_counts_as_opposed(): void {
+        $dimensions = [['key' => 'legacy', 'name' => '舊維度']];
+        $a = ['legacy' => ['score' => -2, 'confidence' => .9]]; $b = ['legacy' => ['score' => 2, 'confidence' => .9]];
+        $this->assertSame('different', (new PerspectiveService)->compare($a, $b, $dimensions)['status']);
+    }
 }

@@ -1,0 +1,7 @@
+[
+  {"title": "某人質疑政策，另一人反駁並支持", "scores": {"position": null, "focus": 1, "tone": -1}, "evidence": {"focus": "政策", "tone": "質疑"}},
+  {"title": "朝野協商共同推動制度改革", "scores": {"position": null, "focus": 1, "tone": 1}, "evidence": {"focus": "制度", "tone": "協商"}},
+  {"title": "議員反諷市長政績宣傳", "scores": {"position": null, "focus": -1, "tone": -1}, "evidence": {"focus": "反諷", "tone": "反諷"}},
+  {"title": "政策合作卻遭質疑", "scores": {"position": null, "focus": 1, "tone": null}, "evidence": {"focus": "政策"}},
+  {"title": "颱風明天登陸", "scores": {"position": null, "focus": null, "tone": null}, "evidence": {}}
+]
