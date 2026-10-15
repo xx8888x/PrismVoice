@@ -21,8 +21,8 @@ if (-not (Test-ProjectProcess $serverPidPath $phpPath)) {
     $process.Id | Set-Content -LiteralPath $serverPidPath
 }
 $pythonPidPath = Join-Path $projectRoot '.runtime\python.pid'
-# Crawler stays off until the PHP and Python pipelines are unified: it scores randomly, marks results reviewed and posts titles to httpbin.org.
-$enableCrawler = $false
+# The Python service is the only ingestion pipeline (see python_service/main.py). Set to $false to run the site without fetching news.
+$enableCrawler = $true
 if ($enableCrawler -and -not (Test-ProjectProcess $pythonPidPath 'python.exe')) {
     $process = Start-Process -FilePath 'python' -ArgumentList 'main.py' -WorkingDirectory (Join-Path $projectRoot 'python_service') -WindowStyle Hidden -PassThru
     $process.Id | Set-Content -LiteralPath $pythonPidPath
