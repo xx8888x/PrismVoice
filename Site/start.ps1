@@ -21,11 +21,14 @@ if (-not (Test-ProjectProcess $serverPidPath $phpPath)) {
     $process.Id | Set-Content -LiteralPath $serverPidPath
 }
 $pythonPidPath = Join-Path $projectRoot '.runtime\python.pid'
-if (-not (Test-ProjectProcess $pythonPidPath 'python.exe')) {
+# Crawler stays off until the PHP and Python pipelines are unified: it scores randomly, marks results reviewed and posts titles to httpbin.org.
+$enableCrawler = $false
+if ($enableCrawler -and -not (Test-ProjectProcess $pythonPidPath 'python.exe')) {
     $process = Start-Process -FilePath 'python' -ArgumentList 'main.py' -WorkingDirectory (Join-Path $projectRoot 'python_service') -WindowStyle Hidden -PassThru
     $process.Id | Set-Content -LiteralPath $pythonPidPath
 }
-Write-Output 'Prism: http://127.0.0.1:8088 (MariaDB on 127.0.0.1:3307 | Python Service Running)'
+$crawlerStatus = if ($enableCrawler) { 'Python crawler running' } else { 'Python crawler disabled' }
+Write-Output "Prism: http://127.0.0.1:8088 (MariaDB on 127.0.0.1:3307 | $crawlerStatus)"
 
 
 
